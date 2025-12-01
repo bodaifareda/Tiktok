@@ -1,0 +1,38 @@
+from google_genai import Client
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+
+# توكن بوت تيليجرام
+TELEGRAM_TOKEN = "8030915262:AAHlyq-4zHOqL2NTdpD7Nhik0EWQSJwiWGk"
+
+# مفتاح Gemini API
+GEMINI_API_KEY = "AIzaSyAXCGYavw-QW06UoCVZZJsICyiq37OFIfA"
+
+client = Client(api_key=GEMINI_API_KEY)
+
+# بدء البوت
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "سلام رضا! أنا بوت دراسي للبكالوريا، أرسل لي أي سؤال وسأشرحه بسرعة وذكاء."
+    )
+
+# الرد على الأسئلة
+async def study_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
+
+    prompt = f"أنت معلم خصوصي للبكالوريا. أجب على هذا السؤال بدقة وذكاء: {user_text}"
+
+    try:
+        response = client.generate_text(model="gemini-2.5", prompt=prompt, max_output_tokens=250)
+        answer = response.text
+    except Exception as e:
+        answer = f"حدث خطأ: {e}"
+
+    await update.message.reply_text(answer)
+
+# إعداد البوت
+app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, study_bot))
+
+app.run_polling()
